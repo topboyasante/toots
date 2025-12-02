@@ -1,8 +1,29 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Kanban from "./kanban";
+import { Button } from "@workspace/ui/components/button";
+import {
+  Conversation,
+  ConversationContent,
+  ConversationEmptyState,
+  ConversationScrollButton,
+} from "@/components/ai-elements/conversation";
+import {
+  Message,
+  MessageContent,
+  MessageResponse,
+} from "@/components/ai-elements/message";
+import {
+  Tool,
+  ToolContent,
+  ToolHeader,
+  ToolInput,
+  ToolOutput,
+} from "@/components/ai-elements/tool";
+import { Loader } from "@/components/ai-elements/loader";
+import type { ToolUIPart } from "ai";
 
 type Props = {
   projectIdea: string;
@@ -21,104 +42,64 @@ type Ticket = {
 };
 
 export default function ProjectChat({ projectIdea }: Props) {
-  const { messages, sendMessage, status, error } = useChat({
-    api: "/api/chat",
-  });
+  const { messages, sendMessage, status, error } = useChat();
 
-  // Track if we've already submitted to prevent re-submissions
   const hasSubmittedRef = useRef(false);
   const lastProjectIdeaRef = useRef<string>("");
+  const [input, setInput] = useState("");
 
   useEffect(() => {
-    // Only submit if projectIdea exists and hasn't been submitted yet
     if (
       projectIdea &&
       (projectIdea !== lastProjectIdeaRef.current || !hasSubmittedRef.current)
     ) {
-      console.log("[Client] Submitting project idea:", projectIdea);
       hasSubmittedRef.current = true;
       lastProjectIdeaRef.current = projectIdea;
       sendMessage({ text: projectIdea });
     }
   }, [projectIdea, sendMessage]);
 
-  // Extract tickets from tool results
-  const tickets: Partial<Ticket>[] = [];
   const isLoading = status === "submitted" || status === "streaming";
 
-  // Debug: Log messages to see what we're receiving
-  useEffect(() => {
-    if (messages.length > 0) {
-      console.log("[Client] Total messages:", messages.length);
-      console.log("[Client] Status:", status);
-      messages.forEach((message, idx) => {
-        console.log(`[Client] Message ${idx} (${message.role}):`, {
-          id: message.id,
-          role: message.role,
-          partsCount: message.parts.length,
-          parts: message.parts.map((p) => {
-            const partInfo: any = { type: p.type };
-            if ("state" in p) {
-              partInfo.state = p.state;
-            }
-            if ("output" in p && p.output) {
-              partInfo.hasOutput = true;
-              partInfo.outputKeys = Object.keys(p.output);
-            }
-            if ("input" in p && p.input) {
-              partInfo.hasInput = true;
-            }
-            return partInfo;
-          }),
-        });
-      });
-    }
-  }, [messages, status]);
+  const tickets = useMemo(() => {
+    const extractedTickets: Partial<Ticket>[] = [];
 
-  // Find tickets from tool outputs in messages
-  // Process messages in reverse to get the most recent tickets first
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const message = messages[i];
-    if (message.role === "assistant") {
-      for (const part of message.parts) {
-        // Check for tool-generateTickets parts
-        if (part.type === "tool-generateTickets") {
-          console.log("[Client] Found tool-generateTickets part:", {
-            state: "state" in part ? part.state : "no state",
-            hasOutput: "output" in part,
-            output: "output" in part ? part.output : undefined,
-          });
-
-          // Handle different tool states
-          if ("state" in part) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const message = messages[i];
+      if (message.role === "assistant") {
+        for (const part of message.parts) {
+          if (part.type === "tool-generateTickets" && "state" in part) {
             if (part.state === "output-available") {
               const output = "output" in part ? part.output : null;
               if (output && typeof output === "object" && "tickets" in output) {
                 const toolTickets = (output.tickets as Ticket[]) || [];
-                console.log("[Client] Extracted tickets from output:", toolTickets.length);
                 if (toolTickets.length > 0) {
-                  tickets.push(...toolTickets);
-                  // Break out of both loops once we find tickets
-                  i = -1;
-                  break;
+                  extractedTickets.push(...toolTickets);
+                  return extractedTickets;
                 }
-              } else {
-                console.log("[Client] Output format unexpected:", output);
               }
-            } else if (part.state === "input-available") {
-              console.log("[Client] Tool call received, waiting for output...");
-            } else if (part.state === "output-error") {
-              console.error("[Client] Tool execution error:", "errorText" in part ? part.errorText : "Unknown error");
             }
           }
         }
       }
     }
-  }
 
-  if (tickets.length > 0) {
-    console.log("[Client] Final tickets array length:", tickets.length);
-  }
+    return extractedTickets;
+  }, [messages]);
+
+  const hasTickets = tickets.length > 0;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (input.trim()) {
+      sendMessage({ text: input.trim() });
+      setInput("");
+    }
+  };
+
+  const handleSkip = () => {
+    sendMessage({ text: "skip" });
+  };
 
   return (
     <div className="space-y-4">
@@ -128,7 +109,121 @@ export default function ProjectChat({ projectIdea }: Props) {
         </div>
       )}
 
-      <Kanban tickets={tickets} isLoading={isLoading} />
+      {!hasTickets && (
+        <div className="flex flex-col h-[600px] border rounded-lg bg-card">
+          <div className="p-4 border-b">
+            <h3 className="text-lg font-semibold">Project Planning Chat</h3>
+          </div>
+
+          <Conversation className="flex-1">
+            <ConversationContent>
+              {messages.length === 0 ? (
+                <ConversationEmptyState
+                  title="Start Planning"
+                  description="Describe your project idea to begin"
+                />
+              ) : (
+                messages.map((message) => (
+                  <Message key={message.id} from={message.role}>
+                    <MessageContent>
+                      {message.parts.map((part, idx) => {
+                        if (part.type === "text") {
+                          return (
+                            <MessageResponse key={idx}>
+                              {part.text}
+                            </MessageResponse>
+                          );
+                        }
+
+                        if (
+                          part.type.startsWith("tool-") &&
+                          "state" in part
+                        ) {
+                          const toolPart = part as ToolUIPart;
+                          return (
+                            <Tool key={idx} defaultOpen={false}>
+                              <ToolHeader
+                                type={toolPart.type}
+                                state={toolPart.state}
+                                title={toolPart.type
+                                  .split("-")
+                                  .slice(1)
+                                  .join("-")}
+                              />
+                              <ToolContent>
+                                {"input" in toolPart && toolPart.input && (
+                                  <ToolInput input={toolPart.input} />
+                                )}
+                                {"output" in toolPart &&
+                                  ("errorText" in toolPart ? (
+                                    <ToolOutput
+                                      output={toolPart.output}
+                                      errorText={toolPart.errorText}
+                                    />
+                                  ) : (
+                                    <ToolOutput output={toolPart.output} />
+                                  ))}
+                              </ToolContent>
+                            </Tool>
+                          );
+                        }
+
+                        return null;
+                      })}
+                    </MessageContent>
+                  </Message>
+                ))
+              )}
+
+              {isLoading && (
+                <Message from="assistant">
+                  <MessageContent>
+                    <Loader />
+                  </MessageContent>
+                </Message>
+              )}
+            </ConversationContent>
+            <ConversationScrollButton />
+          </Conversation>
+
+          <div className="p-4 border-t">
+            <form onSubmit={handleSubmit} className="flex gap-2">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Answer questions or type 'skip' to proceed..."
+                className="flex-1 px-4 py-2 border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                disabled={isLoading}
+              />
+              <Button type="submit" disabled={isLoading || !input.trim()}>
+                Send
+              </Button>
+              {messages.length > 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSkip}
+                  disabled={isLoading}
+                >
+                  Skip
+                </Button>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
+
+      {hasTickets && (
+        <div>
+          <div className="mb-4 p-4 bg-muted rounded-lg">
+            <p className="text-sm text-muted-foreground">
+              ✓ Tickets generated! View the tickets below.
+            </p>
+          </div>
+          <Kanban tickets={tickets} isLoading={isLoading} />
+        </div>
+      )}
     </div>
   );
 }

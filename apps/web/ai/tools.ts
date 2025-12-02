@@ -45,18 +45,22 @@ Be thorough but realistic. Break down complex features into manageable tasks. Ge
 
 export const generateTicketsTool = createTool({
   description:
-    "Generate a comprehensive set of Jira/Linear-style tickets for a project idea. This tool takes a project description and returns structured tickets covering setup, core functionality, features, testing, and deployment.",
+    "Generate a comprehensive set of Jira/Linear-style tickets for a project. Call this tool when you have gathered enough context about the project (either through questions or the user has asked to proceed). Provide a comprehensive project description that includes all relevant details from the conversation.",
   inputSchema: z.object({
-    projectIdea: z.string().describe("The project idea or description to break down into tickets"),
+    projectDescription: z
+      .string()
+      .describe(
+        "A comprehensive project description that includes the initial idea, target audience, key features, technical requirements, and any other relevant context gathered from the conversation. This should be a complete summary that allows for accurate ticket generation."
+      ),
   }),
-  execute: async function ({ projectIdea }) {
-    console.log("[Tool] Generating tickets for project idea:", projectIdea);
+  execute: async function ({ projectDescription }) {
+    console.log("[Tool] Generating tickets for project description:", projectDescription.substring(0, 200) + "...");
 
     try {
       const { object } = await generateObject({
         model: google("gemini-2.5-flash"),
         schema: ticketsSchema,
-        prompt: `${TICKET_GENERATION_PROMPT}\n\nProject Idea: ${projectIdea}`,
+        prompt: `${TICKET_GENERATION_PROMPT}\n\nProject Description:\n${projectDescription}`,
       });
 
       console.log("[Tool] Generated tickets:", object.tickets?.length || 0);
