@@ -1,60 +1,41 @@
-import { streamObject, gateway } from "ai";
-import { z } from "zod";
+import { streamText, convertToModelMessages, UIMessage } from "ai";
+import { google } from "@ai-sdk/google";
+import { tools } from "@/ai/tools";
 
-const ticketSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  type: z.enum(["Story", "Task", "Bug", "Epic", "Feature"]),
-  priority: z.enum(["P0", "P1", "P2", "P3"]),
-  description: z.string(),
-  acceptanceCriteria: z.array(z.string()),
-  estimatedEffort: z.enum(["XS", "S", "M", "L", "XL"]),
-  dependencies: z.array(z.string()),
-  labels: z.array(z.string()),
-});
+const SYSTEM_PROMPT = `You are an expert project manager assistant that helps users break down project ideas into actionable tickets.
 
-const ticketsSchema = z.object({
-  tickets: z.array(ticketSchema),
-});
+YOUR WORKFLOW:
+1. When a user first describes a project idea, analyze it and ask 2-4 clarifying questions to gather important context. Ask about:
+   - Target users/audience
+   - Key features and priorities
+   - Technical requirements or constraints
+   - Timeline or scope expectations
+   - Any specific technologies or platforms
 
-const SYSTEM_PROMPT = `You are an expert project manager and technical lead who excels at breaking down project ideas into actionable tickets.
+2. Wait for the user's responses to your questions.
 
-When a user describes a project idea, you will generate a comprehensive set of Jira/Linear-style tickets that cover all aspects of building that project.
+3. After gathering context (or if the user says "skip", "proceed", "generate tickets", "that's enough", or similar), call the generateTickets tool with a comprehensive summary of the project based on the entire conversation.
 
-Each ticket should have:
-- id: unique ticket identifier (e.g., "ticket-1", "ticket-2")
-- title: Clear, action-oriented title
-- type: One of "Story", "Task", "Bug", "Epic", "Feature"
-- priority: One of "P0", "P1", "P2", "P3"
-- description: Detailed explanation of what needs to be done
-- acceptanceCriteria: Array of criteria that must be met
-- estimatedEffort: One of "XS", "S", "M", "L", "XL"
-- dependencies: Array of ticket IDs this depends on
-- labels: Array of relevant labels (e.g., "frontend", "backend", "database")
+4. The tool will generate structured tickets that you can then present to the user.
 
-Generate tickets in a logical order:
-1. Setup and infrastructure tickets first
-2. Core functionality tickets
-3. Feature implementation tickets
-4. Testing and quality assurance tickets
-5. Deployment and documentation tickets
-
-Be thorough but realistic. Break down complex features into manageable tasks.`;
+IMPORTANT:
+- Always ask questions first to gather context (unless the user explicitly wants to skip)
+- If the user says "skip", "proceed", "generate", "that's enough", or similar, proceed to call the generateTickets tool
+- When calling the tool, provide a comprehensive project description that includes all the context from the conversation
+- Be friendly and conversational when asking questions`;
 
 export async function POST(req: Request) {
   try {
-    const context = await req.json();
-    console.log("[API] Received context:", context);
+    const { messages }: { messages: UIMessage[] } = await req.json();
 
-    const result = streamObject({
-      model: gateway("anthropic/claude-sonnet-4.5"),
+    const result = streamText({
+      model: google("gemini-2.5-flash"),
       system: SYSTEM_PROMPT,
-      prompt: context,
-      schema: ticketsSchema,
+      messages: convertToModelMessages(messages),
+      tools,
     });
 
-    console.log("[API] Starting stream...");
-    return result.toTextStreamResponse();
+    return result.toUIMessageStreamResponse();
   } catch (error) {
     console.error("[API] Error:", error);
     return new Response(JSON.stringify({ error: String(error) }), {
