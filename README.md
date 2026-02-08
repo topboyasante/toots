@@ -4,11 +4,19 @@
 
 ## Features
 
-- **AI-generated tickets** — Describe a project idea and get tickets generated for tech and non-tech use cases.
+### Implemented
+
+- **AI-generated tickets** — Describe a project idea; the app asks clarifying questions, then generates Jira/Linear-style tickets (Story, Task, Bug, Epic, Feature) with priority, effort, acceptance criteria, dependencies, and labels. Powered by Gemini.
+- **Kanban board** — Drag-and-drop board (To Do → In Progress → Done) for generated tickets.
+- **Ticket detail view** — Slide-out sheet with full description, acceptance criteria, dependencies, and labels.
+- **Project idea flow** — Home page form to enter an idea; redirects to a project chat where tickets are generated.
+
+### Planned
+
 - **Export** — Send boards and tickets to **Jira** or **Linear**.
-- **Tracking** — Kanban-style boards, assignments, and status tracking.
-- **Points & recognition** — Assign and award points to whoever completes tickets.
-- **Agents** — Optional AI agents to work on tickets (planned).
+- **Assignments & points** — Assign tickets and award points to whoever completes them.
+- **Persistence** — Save projects and ticket state (currently in-memory only).
+- **Agents** — Optional AI agents to work on tickets.
 
 ## Tech stack
 
