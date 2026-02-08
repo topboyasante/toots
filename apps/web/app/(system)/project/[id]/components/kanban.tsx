@@ -1,10 +1,11 @@
 "use client";
 
-import { DndContext, DragEndEvent, DragStartEvent, DragOverlay, UniqueIdentifier } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragStartEvent, DragOverlay, UniqueIdentifier, PointerSensor, KeyboardSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { useState, useEffect } from "react";
 import { Ticket } from "@/types/ticket";
 import Droppable from "@/components/ui/droppable";
 import Draggable from "@/components/ui/draggable";
+import TicketDetailSheet from "./ticket-detail-sheet";
 
 type KanbanProps = {
   tickets: Partial<Ticket>[];
@@ -33,6 +34,17 @@ export default function Kanban({ tickets, isLoading = false }: KanbanProps) {
 
   // Track the currently dragging ticket
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null);
+
+  // Track the selected ticket for the detail sheet
+  const [selectedTicket, setSelectedTicket] = useState<Partial<Ticket> | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor)
+  );
 
   // Update column assignments when new tickets arrive
   useEffect(() => {
@@ -105,8 +117,9 @@ export default function Kanban({ tickets, isLoading = false }: KanbanProps) {
   );
 
   return (
-    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-3 gap-4">
+    <>
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="grid grid-cols-3 gap-4">
         {columns.map((column) => (
           <div key={column.id} className="flex flex-col">
             <h2 className="text-lg font-semibold mb-4 px-2">{column.title}</h2>
@@ -148,6 +161,10 @@ export default function Kanban({ tickets, isLoading = false }: KanbanProps) {
                         key={ticket.id!}
                         id={ticket.id!}
                         className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-sm border border-border cursor-grab active:cursor-grabbing"
+                        onClick={() => {
+                          setSelectedTicket(ticket);
+                          setSheetOpen(true);
+                        }}
                       >
                         {renderTicketCard(ticket)}
                       </Draggable>
@@ -165,13 +182,19 @@ export default function Kanban({ tickets, isLoading = false }: KanbanProps) {
         ))}
       </div>
 
-      <DragOverlay>
-        {activeTicket ? (
-          <div className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-lg border border-border cursor-grabbing rotate-3 opacity-90">
-            {renderTicketCard(activeTicket)}
-          </div>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+        <DragOverlay>
+          {activeTicket ? (
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-lg border border-border cursor-grabbing rotate-3 opacity-90">
+              {renderTicketCard(activeTicket)}
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+      <TicketDetailSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        ticket={selectedTicket}
+      />
+    </>
   );
 }

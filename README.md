@@ -1,31 +1,39 @@
-# shadcn/ui monorepo template
+# Toots
 
-This template is for creating a monorepo with shadcn/ui.
+**AI-powered project manager** — create and manage tickets for tech and non-tech work, export to Jira or Linear, track progress, assign work, award points for completed tasks, and (optionally) have AI agents work on tickets.
 
-## Usage
+## Features
+
+- **AI-generated tickets** — Describe a project idea and get tickets generated for tech and non-tech use cases.
+- **Export** — Send boards and tickets to **Jira** or **Linear**.
+- **Tracking** — Kanban-style boards, assignments, and status tracking.
+- **Points & recognition** — Assign and award points to whoever completes tickets.
+- **Agents** — Optional AI agents to work on tickets (planned).
+
+## Tech stack
+
+- Monorepo: **pnpm**, **Turborepo**
+- App: **Next.js**, **shadcn/ui** (shared in `packages/ui`)
+
+## Development
 
 ```bash
-pnpm dlx shadcn@latest init
+pnpm install
+pnpm dev
 ```
 
-## Adding components
+### Adding UI components
 
-To add components to your app, run the following command at the root of your `web` app:
+From the repo root, add shadcn components to the web app:
 
 ```bash
 pnpm dlx shadcn@latest add button -c apps/web
 ```
 
-This will place the ui components in the `packages/ui/src/components` directory.
-
-## Tailwind
-
-Your `tailwind.config.ts` and `globals.css` are already set up to use the components from the `ui` package.
-
-## Using components
-
-To use the components in your app, import them from the `ui` package.
+Components live in `packages/ui/src/components`. Use them in the app via:
 
 ```tsx
 import { Button } from "@workspace/ui/components/button"
 ```
+
+Tailwind and `globals.css` are set up to use the shared `ui` package.
