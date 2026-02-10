@@ -74,65 +74,70 @@ export function ProjectChat({ project }: ProjectChatProps) {
   const isLoading = status === "submitted" || status === "streaming";
 
   return (
-    <div className="mt-6 flex flex-col gap-4">
-      <Conversation className="min-h-[320px]">
-        <ConversationContent>
-          {messages.length === 0 ? (
-            <ConversationEmptyState
-              title="Clarifying questions"
-              description={
-                isLoading
-                  ? "Asking clarifying questions…"
-                  : "We'll ask a few questions to refine your project, then generate tickets. You can skip to ticket generation at any time."
-              }
+    <div className="flex h-full flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
+        <Conversation className="min-h-full">
+          <ConversationContent>
+            {messages.length === 0 ? (
+              <ConversationEmptyState
+                title="Clarifying questions"
+                description={
+                  isLoading
+                    ? "Asking clarifying questions…"
+                    : "We'll ask a few questions to refine your project, then generate tickets. You can skip to ticket generation at any time."
+                }
+              >
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                  <Button
+                    onClick={sendSkip}
+                    variant="outline"
+                    size="sm"
+                    disabled={isLoading}
+                  >
+                    Skip to ticket generation
+                  </Button>
+                </div>
+              </ConversationEmptyState>
+            ) : (
+              messages.map((message) => (
+                <Message key={message.id} from={message.role}>
+                  <MessageContent>
+                    {message.role === "assistant" ? (
+                      <MessageResponse>
+                        {getMessageText(message)}
+                      </MessageResponse>
+                    ) : (
+                      <span className="whitespace-pre-wrap">
+                        {getMessageText(message)}
+                      </span>
+                    )}
+                  </MessageContent>
+                </Message>
+              ))
+            )}
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
+      </div>
+
+      <div className="shrink-0 border-t border-border bg-background">
+        <PromptInput onSubmit={handleSubmit}>
+          <PromptInputTextarea name="message" placeholder="Answer the questions or ask to generate tickets…" />
+          <PromptInputFooter>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground"
+              onClick={sendSkip}
+              disabled={isLoading}
             >
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                <Button
-                  onClick={sendSkip}
-                  variant="outline"
-                  size="sm"
-                  disabled={isLoading}
-                >
-                  Skip to ticket generation
-                </Button>
-              </div>
-            </ConversationEmptyState>
-          ) : (
-            messages.map((message) => (
-              <Message key={message.id} from={message.role}>
-                <MessageContent>
-                  {message.role === "assistant" ? (
-                    <MessageResponse>
-                      {getMessageText(message)}
-                    </MessageResponse>
-                  ) : (
-                    <span className="whitespace-pre-wrap">
-                      {getMessageText(message)}
-                    </span>
-                  )}
-                </MessageContent>
-              </Message>
-            ))
-          )}
-        </ConversationContent>
-        <ConversationScrollButton />
-      </Conversation>
-      <PromptInput onSubmit={handleSubmit}>
-        <PromptInputTextarea name="message" placeholder="Answer the questions or ask to generate tickets…" />
-        <PromptInputFooter>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground hover:text-foreground"
-            onClick={sendSkip}
-            disabled={isLoading}
-          >
-            Skip to ticket generation
-          </Button>
-          <PromptInputSubmit status={status} onStop={stop} />
-        </PromptInputFooter>
-      </PromptInput>
+              Skip to ticket generation
+            </Button>
+            <PromptInputSubmit status={status} onStop={stop} />
+          </PromptInputFooter>
+        </PromptInput>
+      </div>
     </div>
   );
 }

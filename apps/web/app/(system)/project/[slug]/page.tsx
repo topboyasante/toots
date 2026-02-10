@@ -20,31 +20,31 @@ export default async function ProjectBySlugPage({ params }: Props) {
   if (!project) notFound()
 
   return (
-    <div className="p-6">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/">Home</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{project.name}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-      <h1 className="mt-4 text-xl font-semibold">{project.name}</h1>
-      {project.description ? (
-        <p className="mt-2 text-sm text-muted-foreground">{project.description}</p>
-      ) : null}
-      <ProjectChat
-        project={{
-          id: project.id,
-          name: project.name,
-          description: project.description ?? null,
-        }}
-      />
+    <div className="flex h-dvh flex-col overflow-hidden p-6">
+      <div className="shrink-0">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{project.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+      <div className="mt-6 min-h-0 flex-1 max-w-2xl mx-auto">
+        <ProjectChat
+          project={{
+            id: project.id,
+            name: project.name,
+            description: project.description ?? null,
+          }}
+        />
+      </div>
     </div>
   )
 }

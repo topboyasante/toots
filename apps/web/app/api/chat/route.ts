@@ -51,6 +51,16 @@ IMPORTANT:
 
 export async function POST(req: Request) {
   try {
+    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "Google Generative AI API key is missing. Set GOOGLE_GENERATIVE_AI_API_KEY in your .env file.",
+        }),
+        { status: 503, headers: { "Content-Type": "application/json" } }
+      )
+    }
+
     const body = await req.json()
     const { messages, project }: { messages: UIMessage[]; project?: { id: string; name: string; description: string | null } } = body
 
