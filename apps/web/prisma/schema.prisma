@@ -23,8 +23,23 @@ model User {
   image         String?
   sessions      Session[]
   accounts      Account[]
+  projects      Project[]
 
   @@map("user")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("project")
 }
 
 model Session {

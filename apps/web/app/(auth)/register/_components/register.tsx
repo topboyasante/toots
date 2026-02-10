@@ -9,7 +9,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Separator } from "@workspace/ui/components/separator";
-import { formSchema, type FormValues } from "@/lib/schema/auth";
+import { registerFormSchema, type RegisterFormValues } from "@/lib/schema/auth";
 import { Controller, useForm } from "react-hook-form";
 import { authClient } from "@/lib/auth/client";
 import { GitHubIcon, GoogleIcon, Logo } from "./logos";
@@ -19,8 +19,8 @@ import Link from "next/link";
 
 export default function RegisterForm() {
   const router = useRouter();
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerFormSchema),
     defaultValues: {
       username: "",
       email: "",
@@ -30,7 +30,7 @@ export default function RegisterForm() {
 
   const isSubmitting = form.formState.isSubmitting;
 
-  async function onSubmit(data: FormValues) {
+  async function onSubmit(data: RegisterFormValues) {
     const { error } = await authClient.signUp.email({
       email: data.email,
       name: data.username,
@@ -113,7 +113,7 @@ export default function RegisterForm() {
             className="mt-6 space-y-4"
             noValidate
           >
-            <Controller<FormValues>
+            <Controller<RegisterFormValues>
               name="username"
               control={form.control}
               render={({ field, fieldState }) => (
@@ -134,7 +134,7 @@ export default function RegisterForm() {
                 </Field>
               )}
             />
-            <Controller<FormValues>
+            <Controller<RegisterFormValues>
               name="email"
               control={form.control}
               render={({ field, fieldState }) => (
@@ -155,7 +155,7 @@ export default function RegisterForm() {
                 </Field>
               )}
             />
-            <Controller<FormValues>
+            <Controller<RegisterFormValues>
               name="password"
               control={form.control}
               render={({ field, fieldState }) => (

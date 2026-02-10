@@ -8,3 +8,33 @@ export const projectIdeaFormSchema = z.object({
 });
 
 export type ProjectIdeaFormValues = z.infer<typeof projectIdeaFormSchema>;
+
+// RPC procedure schemas
+export const listProjectsInput = z.object({
+  limit: z.number().int().min(1).max(100).optional().default(20),
+  cursor: z.number().int().min(0).optional().default(0),
+});
+
+export const getProjectInput = z.object({
+  id: z.string(),
+});
+
+export const createProjectInput = z.object({
+  name: z.string(),
+  description: z.string(),
+  userId: z.string(),
+});
+
+export const updateProjectInput = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+});
+
+export const deleteProjectInput = z.object({
+  id: z.string(),
+});
+
+export const getProjectBySlugInput = z.object({
+  slug: z.string(),
+});

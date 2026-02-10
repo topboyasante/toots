@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@orpc/client": "^1.13.4",
+    "@orpc/server": "^1.13.4",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "@workspace/ui": "workspace:*",
