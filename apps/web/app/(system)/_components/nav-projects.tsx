@@ -1,5 +1,6 @@
 "use client"
 
+import { rpc } from "@/lib/orpc"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,11 +18,14 @@ import {
   useSidebar,
 } from "@workspace/ui/components/sidebar"
 import {
+  ArrowRightIcon,
   FolderIcon,
   MoreHorizontalIcon,
-  ArrowRightIcon,
   Trash2Icon,
 } from "lucide-react"
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 type SidebarProjectsGroup = {
   monthLabel: string
@@ -31,6 +35,22 @@ type SidebarProjectsGroup = {
 
 export function NavProjects({ groups }: { groups: SidebarProjectsGroup[] }) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  async function handleDelete(project: { id: string; slug: string }) {
+    try {
+      await rpc.projects.delete({ id: project.id })
+      if (pathname === `/project/${project.slug}`) {
+        router.push("/")
+      }
+      router.refresh()
+    } catch {
+      toast.error("Failed to delete project.", {
+        description: "Please try again.",
+      })
+    }
+  }
 
   if (groups.length === 0) return null
 
@@ -46,10 +66,10 @@ export function NavProjects({ groups }: { groups: SidebarProjectsGroup[] }) {
             {group.projects.map((project) => (
               <SidebarMenuItem key={project.id}>
                 <SidebarMenuButton asChild>
-                  <a href={`/project/${project.slug}`}>
+                  <Link href={`/project/${project.slug}`}>
                     <FolderIcon />
                     <span>{project.name}</span>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -67,17 +87,20 @@ export function NavProjects({ groups }: { groups: SidebarProjectsGroup[] }) {
                     align={isMobile ? "end" : "start"}
                   >
                     <DropdownMenuItem asChild>
-                      <a href={`/project/${project.slug}`}>
+                      <Link href={`/project/${project.slug}`}>
                         <FolderIcon className="text-muted-foreground" />
                         <span>View Project</span>
-                      </a>
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <ArrowRightIcon className="text-muted-foreground" />
                       <span>Share Project</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleDelete(project)}
+                      className="text-destructive focus:text-destructive"
+                    >
                       <Trash2Icon className="text-muted-foreground" />
                       <span>Delete Project</span>
                     </DropdownMenuItem>

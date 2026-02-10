@@ -16,12 +16,15 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.23",
+    "@ai-sdk/react": "^3.0.80",
     "@hookform/resolvers": "^5.2.2",
     "@orpc/client": "^1.13.4",
     "@orpc/server": "^1.13.4",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "@workspace/ui": "workspace:*",
+    "ai": "^6.0.78",
     "better-auth": "^1.4.18",
     "dotenv": "^17.2.4",
     "lucide-react": "^0.563.0",
@@ -32,7 +35,7 @@
     "react-dom": "^19.2.4",
     "react-hook-form": "^7.71.1",
     "sonner": "^2.0.7",
-    "zod": "^3.25.76"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",

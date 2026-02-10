@@ -1,4 +1,11 @@
 import { prisma } from "@/lib/db"
+
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+}
 import {
   createProjectInput,
   deleteProjectInput,
@@ -38,7 +45,7 @@ export const createProject = protectedBase.input(createProjectInput).handler(asy
       name: input.name,
       description: input.description ?? "",
       userId: context.user.id,
-      slug: input.name.toLowerCase().replace(/ /g, "-"),
+      slug: slugify(input.name) || `project-${Date.now().toString(36)}`,
     },
   })
   return project
@@ -50,7 +57,7 @@ export const updateProject = protectedBase.input(updateProjectInput).handler(asy
     data: {
       name: input.name,
       description: input.description,
-      slug: input.name.toLowerCase().replace(/ /g, "-"),
+      slug: slugify(input.name) || `project-${Date.now().toString(36)}`,
     },
   })
   return project

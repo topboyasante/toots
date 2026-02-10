@@ -22,14 +22,16 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Paperclip, Plus, Send } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useRef } from "react"
-import { Controller, useForm } from "react-hook-form"
+import { type Resolver, Controller, useForm } from "react-hook-form"
 
 export default function Home() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const form = useForm<ProjectIdeaFormValues>({
-    resolver: zodResolver(projectIdeaFormSchema),
+    resolver: zodResolver(
+      projectIdeaFormSchema as unknown as Parameters<typeof zodResolver>[0],
+    ) as unknown as Resolver<ProjectIdeaFormValues>, //did this because of the type errors i was getting, but if you know a better way to do this, please let me know
     defaultValues: {
       idea: "",
     },
@@ -44,6 +46,7 @@ export default function Home() {
 
       const project = await rpc.projects.create({ name, description })
       router.push(`/project/${project.slug}`)
+      router.refresh()
     } catch (err) {
       form.setError("idea", {
         message: err instanceof Error ? err.message : "Failed to create project",
