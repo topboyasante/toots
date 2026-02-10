@@ -1,6 +1,7 @@
 import { tool as createTool, generateText, Output } from "ai"
 import { google } from "@ai-sdk/google"
 import { z } from "zod"
+import { prisma } from "@/lib/db"
 
 const ticketSchema = z.object({
   id: z.string(),
@@ -42,40 +43,58 @@ Generate tickets in a logical order for this kind of project, e.g.:
 
 Be thorough but realistic. Generate at least 5-10 tickets for a typical project.`;
 
-export const generateTicketsTool = createTool({
-  description:
-    "Generate a set of Jira/Linear-style tickets for a work project. Call this when you have enough context (from questions or because the user asked to proceed). The project can be anything—product, marketing, event, process, HR, etc. Provide a clear project description with goals and context from the conversation.",
-  inputSchema: z.object({
-    projectDescription: z
-      .string()
-      .describe(
-        "A clear project description: the goal, who's involved, key deliverables, timeline or constraints, and any other context from the conversation. Enough for accurate, domain-appropriate ticket generation."
-      ),
-  }),
-  execute: async function ({ projectDescription }) {
-    console.log("[Tool] Generating tickets for project description:", projectDescription.substring(0, 200) + "...");
+export function createTools(projectId?: string) {
+  return {
+    generateTickets: createTool({
+      description:
+        "Generate a set of Jira/Linear-style tickets for a work project. Call this when you have enough context (from questions or because the user asked to proceed). The project can be anything—product, marketing, event, process, HR, etc. Provide a clear project description with goals and context from the conversation.",
+      inputSchema: z.object({
+        projectDescription: z
+          .string()
+          .describe(
+            "A clear project description: the goal, who's involved, key deliverables, timeline or constraints, and any other context from the conversation. Enough for accurate, domain-appropriate ticket generation."
+          ),
+      }),
+      execute: async function ({ projectDescription }) {
+        console.log("[Tool] Generating tickets for project description:", projectDescription.substring(0, 200) + "...");
 
-    try {
-      const { output } = await generateText({
-        model: google("gemini-2.5-flash"),
-        output: Output.object({
-          schema: ticketsSchema,
-          name: "Tickets",
-          description: "Generated project tickets",
-        }),
-        prompt: `${TICKET_GENERATION_PROMPT}\n\nProject Description:\n${projectDescription}`,
-      })
+        try {
+          const { output } = await generateText({
+            model: google("gemini-2.5-flash"),
+            output: Output.object({
+              schema: ticketsSchema,
+              name: "Tickets",
+              description: "Generated project tickets",
+            }),
+            prompt: `${TICKET_GENERATION_PROMPT}\n\nProject Description:\n${projectDescription}`,
+          })
 
-      const tickets = output?.tickets ?? []
-      console.log("[Tool] Generated tickets:", tickets.length)
-      return { tickets }
-    } catch (error) {
-      console.error("[Tool] Error generating tickets:", error);
-      throw new Error(`Failed to generate tickets: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  },
-});
+          const tickets = output?.tickets ?? []
+          console.log("[Tool] Generated tickets:", tickets.length)
 
-export const tools = {
-  generateTickets: generateTicketsTool,
-};
+          if (projectId && tickets.length > 0) {
+            await prisma.ticket.createMany({
+              data: tickets.map((t, i) => ({
+                projectId,
+                title: t.title,
+                type: t.type,
+                priority: t.priority,
+                description: t.description,
+                acceptanceCriteria: t.acceptanceCriteria,
+                estimatedEffort: t.estimatedEffort,
+                dependencies: t.dependencies,
+                labels: t.labels,
+                sortOrder: i,
+              })),
+            })
+          }
+
+          return { tickets }
+        } catch (error) {
+          console.error("[Tool] Error generating tickets:", error);
+          throw new Error(`Failed to generate tickets: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      },
+    }),
+  }
+}

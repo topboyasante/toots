@@ -41,3 +41,6 @@ export const getProjectBySlugInput = z.object({
 export const listProjectsForSidebarInput = z.object({
   limit: z.number().int().min(1).max(50).optional().default(20),
 })
+
+export const listMessagesInput = z.object({ projectId: z.string() })
+export const listTicketsInput = z.object({ projectId: z.string() })

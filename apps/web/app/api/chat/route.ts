@@ -1,6 +1,15 @@
-import { streamText, convertToModelMessages, UIMessage } from "ai";
+import { streamText, convertToModelMessages, generateId, UIMessage } from "ai";
 import { google } from "@ai-sdk/google";
-import { tools } from "@/ai/tools";
+import { createTools } from "@/ai/tools";
+import { prisma } from "@/lib/db";
+
+function extractText(message: UIMessage): string {
+  if (!message.parts?.length) return "";
+  return message.parts
+    .filter((p): p is { type: "text"; text: string } => p.type === "text")
+    .map((p) => p.text)
+    .join("");
+}
 
 const SYSTEM_PROMPT = `You are an expert project manager assistant that helps people turn any work project idea into actionable tickets—whether it's a product launch, a marketing campaign, an event, a process change, an HR initiative, or anything else that happens at work.
 
@@ -64,6 +73,20 @@ export async function POST(req: Request) {
     const body = await req.json()
     const { messages, project }: { messages: UIMessage[]; project?: { id: string; name: string; description: string | null } } = body
 
+    const lastMsg = messages[messages.length - 1]
+    if (lastMsg?.role === "user" && project) {
+      await prisma.message.upsert({
+        where: { id: lastMsg.id },
+        update: {},
+        create: {
+          id: lastMsg.id,
+          projectId: project.id,
+          role: "user",
+          content: extractText(lastMsg),
+        },
+      })
+    }
+
     const systemPrompt = project
       ? PROJECT_CONTEXT_PREFIX(project) + PROJECT_CHAT_SYSTEM_PROMPT
       : SYSTEM_PROMPT
@@ -72,7 +95,19 @@ export async function POST(req: Request) {
       model: google("gemini-2.5-flash"),
       system: systemPrompt,
       messages: await convertToModelMessages(messages),
-      tools,
+      tools: createTools(project?.id),
+      async onFinish({ text }) {
+        if (project && text) {
+          await prisma.message.create({
+            data: {
+              id: generateId(),
+              projectId: project.id,
+              role: "assistant",
+              content: text,
+            },
+          })
+        }
+      },
     })
 
     return result.toUIMessageStreamResponse()

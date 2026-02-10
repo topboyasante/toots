@@ -1,5 +1,6 @@
 import "server-only"
 
+import "@/lib/db"
 import { auth } from "@/lib/auth"
 import type { RouterClient } from "@/server/base"
 import { router } from "@/server/base"

@@ -24,9 +24,11 @@ import {
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
 
-const MESSAGE_TRIGGER_QUESTIONS =
-  "I've shared my project above—please ask me your clarifying questions.";
 const MESSAGE_SKIP = "Skip the questions and generate tickets now.";
+
+function buildProjectMessage(project: { name: string; description: string | null }): string {
+  return project.description?.trim() || project.name;
+}
 
 function getMessageText(message: UIMessage): string {
   if (!message.parts?.length) return "";
@@ -38,10 +40,12 @@ function getMessageText(message: UIMessage): string {
 
 export type ProjectChatProps = {
   project: { id: string; name: string; description: string | null };
+  initialMessages?: UIMessage[];
 };
 
-export function ProjectChat({ project }: ProjectChatProps) {
+export function ProjectChat({ project, initialMessages = [] }: ProjectChatProps) {
   const { messages, sendMessage, status, stop } = useChat({
+    messages: initialMessages,
     transport: new DefaultChatTransport({
       api: "/api/chat",
       body: { project },
@@ -50,11 +54,11 @@ export function ProjectChat({ project }: ProjectChatProps) {
 
   const hasAutoSentRef = useRef(false);
   useEffect(() => {
-    if (messages.length === 0 && !hasAutoSentRef.current) {
+    if (initialMessages.length === 0 && messages.length === 0 && !hasAutoSentRef.current) {
       hasAutoSentRef.current = true;
-      sendMessage({ text: MESSAGE_TRIGGER_QUESTIONS });
+      sendMessage({ text: buildProjectMessage(project) });
     }
-  }, [messages.length, sendMessage]);
+  }, [initialMessages.length, messages.length, sendMessage, project]);
 
   const handleSubmit = async (
     message: PromptInputMessage,
@@ -77,7 +81,7 @@ export function ProjectChat({ project }: ProjectChatProps) {
     <div className="flex h-full flex-col">
       <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
         <Conversation className="min-h-full">
-          <ConversationContent>
+          <ConversationContent className="px-0">
             {messages.length === 0 ? (
               <ConversationEmptyState
                 title="Clarifying questions"
@@ -120,7 +124,7 @@ export function ProjectChat({ project }: ProjectChatProps) {
         </Conversation>
       </div>
 
-      <div className="shrink-0 border-t border-border bg-background">
+      <div className="shrink-0 bg-background">
         <PromptInput onSubmit={handleSubmit}>
           <PromptInputTextarea name="message" placeholder="Answer the questions or ask to generate tickets…" />
           <PromptInputFooter>
