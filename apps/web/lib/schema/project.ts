@@ -20,9 +20,8 @@ export const getProjectInput = z.object({
 });
 
 export const createProjectInput = z.object({
-  name: z.string(),
-  description: z.string(),
-  userId: z.string(),
+  name: z.string().min(1),
+  description: z.string().optional().default(""),
 });
 
 export const updateProjectInput = z.object({
@@ -38,3 +37,7 @@ export const deleteProjectInput = z.object({
 export const getProjectBySlugInput = z.object({
   slug: z.string(),
 });
+
+export const listProjectsForSidebarInput = z.object({
+  limit: z.number().int().min(1).max(50).optional().default(20),
+})

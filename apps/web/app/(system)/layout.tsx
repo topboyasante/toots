@@ -1,15 +1,25 @@
-import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar";
-import { AppSidebar } from "./_components/app-sidebar";
+import { auth } from "@/lib/auth"
+import { rpc } from "@/lib/orpc"
+import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
+import { headers } from "next/headers"
+import { AppSidebar } from "./_components/app-sidebar"
 
-export default function SystemLayout({
+export default async function SystemLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
+  const h = await headers()
+  const session = await auth.api.getSession({ headers: h })
+  const sidebarProjects =
+    session?.user != null
+      ? await rpc.projects.listForSidebar({ limit: 20 })
+      : { groups: [] }
+
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar sidebarProjects={sidebarProjects} />
       <SidebarInset>{children}</SidebarInset>
     </SidebarProvider>
-  );
+  )
 }

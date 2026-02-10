@@ -1,11 +1,10 @@
 import { createORPCClient } from "@orpc/client"
 import { RPCLink } from "@orpc/client/fetch"
 import type { Router, RouterClient } from "@/server/base"
-import { router } from "@/server/base"
 
 declare global {
   // eslint-disable-next-line no-var
-  var $client: RouterClient<typeof router> | undefined
+  var $client: RouterClient<Router> | undefined
 }
 
 const link = new RPCLink({
@@ -20,6 +19,13 @@ const link = new RPCLink({
   },
 })
 
+function getRpc(): RouterClient<Router> {
+  if (typeof window !== "undefined") {
+    return createORPCClient(link) as RouterClient<Router>
+  }
+  return (globalThis.$client ?? createORPCClient(link)) as RouterClient<Router>
+}
+
 /**
  * Typed RPC client. Use from server or client components.
  * On the server, uses the direct router client when available (SSR optimization).
@@ -28,6 +34,8 @@ const link = new RPCLink({
  * @example
  * const result = await rpc.projects.list({ limit: 10 })
  */
-export const rpc: RouterClient<Router> =
-  ((typeof window === "undefined" && globalThis.$client) ??
-    createORPCClient(link)) as RouterClient<Router>
+export const rpc = new Proxy({} as RouterClient<Router>, {
+  get(_, key) {
+    return (getRpc() as Record<string, unknown>)[key as string]
+  },
+})

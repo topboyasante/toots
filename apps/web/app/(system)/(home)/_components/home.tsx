@@ -1,41 +1,54 @@
-"use client";
+"use client"
 
-import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  projectIdeaFormSchema,
+  type ProjectIdeaFormValues,
+} from "@/lib/schema/project"
+import { rpc } from "@/lib/orpc"
 import {
   Field,
   FieldError,
   FieldLabel,
-} from "@workspace/ui/components/field";
-import { Button } from "@workspace/ui/components/button";
+} from "@workspace/ui/components/field"
+import { Button } from "@workspace/ui/components/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
-import {
-  projectIdeaFormSchema,
-  type ProjectIdeaFormValues,
-} from "@/lib/schema/project";
-import { Controller, useForm } from "react-hook-form";
-import { Paperclip, Plus, Send } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useRef } from "react";
+} from "@workspace/ui/components/dropdown-menu"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Paperclip, Plus, Send } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useRef } from "react"
+import { Controller, useForm } from "react-hook-form"
 
 export default function Home() {
-  const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const form = useForm<ProjectIdeaFormValues>({
     resolver: zodResolver(projectIdeaFormSchema),
     defaultValues: {
       idea: "",
     },
-  });
+  })
 
-  function onSubmit(data: ProjectIdeaFormValues) {
-    router.push(`/project?idea=${encodeURIComponent(data.idea.trim())}`);
+  async function onSubmit(data: ProjectIdeaFormValues) {
+    try {
+      const trimmed = data.idea.trim()
+      const firstLine = trimmed.split("\n")[0] ?? trimmed
+      const name = firstLine.slice(0, 80)
+      const description = trimmed
+
+      const project = await rpc.projects.create({ name, description })
+      router.push(`/project/${project.slug}`)
+    } catch (err) {
+      form.setError("idea", {
+        message: err instanceof Error ? err.message : "Failed to create project",
+      })
+    }
   }
 
   return (
