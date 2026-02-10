@@ -9,6 +9,7 @@ import {
 import Link from "next/link"
 import { rpc } from "@/lib/orpc"
 import { notFound } from "next/navigation"
+import { ProjectChat } from "./_components/project-chat"
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -37,9 +38,13 @@ export default async function ProjectBySlugPage({ params }: Props) {
       {project.description ? (
         <p className="mt-2 text-sm text-muted-foreground">{project.description}</p>
       ) : null}
-      <p className="mt-4 text-sm text-muted-foreground">
-        Project chat and ticket generation will go here.
-      </p>
+      <ProjectChat
+        project={{
+          id: project.id,
+          name: project.name,
+          description: project.description ?? null,
+        }}
+      />
     </div>
   )
 }

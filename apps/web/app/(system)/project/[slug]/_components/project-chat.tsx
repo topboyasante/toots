@@ -1,0 +1,138 @@
+"use client";
+
+import type { UIMessage } from "ai";
+import { DefaultChatTransport } from "ai";
+import { useChat } from "@ai-sdk/react";
+import { useEffect, useRef } from "react";
+import { Button } from "@workspace/ui/components/button";
+import {
+  Conversation,
+  ConversationContent,
+  ConversationEmptyState,
+  ConversationScrollButton,
+} from "@/components/ai-elements/conversation";
+import {
+  Message,
+  MessageContent,
+  MessageResponse,
+} from "@/components/ai-elements/message";
+import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
+import {
+  PromptInput,
+  PromptInputFooter,
+  PromptInputSubmit,
+  PromptInputTextarea,
+} from "@/components/ai-elements/prompt-input";
+
+const MESSAGE_TRIGGER_QUESTIONS =
+  "I've shared my project above—please ask me your clarifying questions.";
+const MESSAGE_SKIP = "Skip the questions and generate tickets now.";
+
+function getMessageText(message: UIMessage): string {
+  if (!message.parts?.length) return "";
+  return message.parts
+    .filter((p): p is { type: "text"; text: string } => p.type === "text")
+    .map((p) => p.text)
+    .join("");
+}
+
+export type ProjectChatProps = {
+  project: { id: string; name: string; description: string | null };
+};
+
+export function ProjectChat({ project }: ProjectChatProps) {
+  const { messages, sendMessage, status, stop } = useChat({
+    transport: new DefaultChatTransport({
+      api: "/api/chat",
+      body: { project },
+    }),
+  });
+
+  const hasAutoSentRef = useRef(false);
+  useEffect(() => {
+    if (messages.length === 0 && !hasAutoSentRef.current) {
+      hasAutoSentRef.current = true;
+      sendMessage({ text: MESSAGE_TRIGGER_QUESTIONS });
+    }
+  }, [messages.length, sendMessage]);
+
+  const handleSubmit = async (
+    message: PromptInputMessage,
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+    const text = message.text?.trim();
+    if (!text) return;
+    await sendMessage({
+      text,
+      files: message.files?.length ? message.files : undefined,
+    });
+  };
+
+  const sendSkip = () => sendMessage({ text: MESSAGE_SKIP });
+
+  const isLoading = status === "submitted" || status === "streaming";
+
+  return (
+    <div className="mt-6 flex flex-col gap-4">
+      <Conversation className="min-h-[320px]">
+        <ConversationContent>
+          {messages.length === 0 ? (
+            <ConversationEmptyState
+              title="Clarifying questions"
+              description={
+                isLoading
+                  ? "Asking clarifying questions…"
+                  : "We'll ask a few questions to refine your project, then generate tickets. You can skip to ticket generation at any time."
+              }
+            >
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                <Button
+                  onClick={sendSkip}
+                  variant="outline"
+                  size="sm"
+                  disabled={isLoading}
+                >
+                  Skip to ticket generation
+                </Button>
+              </div>
+            </ConversationEmptyState>
+          ) : (
+            messages.map((message) => (
+              <Message key={message.id} from={message.role}>
+                <MessageContent>
+                  {message.role === "assistant" ? (
+                    <MessageResponse>
+                      {getMessageText(message)}
+                    </MessageResponse>
+                  ) : (
+                    <span className="whitespace-pre-wrap">
+                      {getMessageText(message)}
+                    </span>
+                  )}
+                </MessageContent>
+              </Message>
+            ))
+          )}
+        </ConversationContent>
+        <ConversationScrollButton />
+      </Conversation>
+      <PromptInput onSubmit={handleSubmit}>
+        <PromptInputTextarea name="message" placeholder="Answer the questions or ask to generate tickets…" />
+        <PromptInputFooter>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={sendSkip}
+            disabled={isLoading}
+          >
+            Skip to ticket generation
+          </Button>
+          <PromptInputSubmit status={status} onStop={stop} />
+        </PromptInputFooter>
+      </PromptInput>
+    </div>
+  );
+}
