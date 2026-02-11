@@ -1,6 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "new-york",
+  "style": "radix-nova",
   "rsc": true,
   "tsx": true,
   "tailwind": {
@@ -18,7 +18,6 @@
     "hooks": "@/hooks"
   },
   "registries": {
-    "@blocks": "https://blocks.so/r/{name}.json",
-    "@ai-elements": "https://registry.ai-sdk.dev/{name}.json"
+    "@ai-elements": "https://ai-sdk.dev/elements/api/registry/{name}.json"
   }
 }

@@ -1,6 +1,6 @@
 # Toots
 
-**AI-powered project manager** — create and manage tickets for tech and non-tech work, export to Jira or Linear, track progress, assign work, award points for completed tasks, and (optionally) have AI agents work on tickets.
+**AI-powered project manager** — create and manage tickets for work, export to Jira or Linear, track progress, assign work, award points for completed tasks, and (optionally) have AI agents work on tickets.
 
 ## Features
 

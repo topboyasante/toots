@@ -1,51 +1,68 @@
-import { Button } from '@workspace/ui/components/button';
-import Link from 'next/link';
-import ProjectChat from './components/project-chat';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@workspace/ui/components/breadcrumb"
+import Link from "next/link"
+import { rpc } from "@/lib/orpc"
+import { notFound } from "next/navigation"
+import { ProjectView } from "./_components/project-view"
+import type { Ticket } from "./_components/types"
+import type { UIMessage } from "ai"
 
-type Props = {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ idea?: string }>;
-};
+type Props = { params: Promise<{ id: string }> }
 
-export default async function ProjectPage({ searchParams }: Props) {
-  const { idea } = await searchParams;
+function messagesToUIMessages(messages: { id: string; role: string; content: string }[]): UIMessage[] {
+  return messages.map((m) => ({
+    id: m.id,
+    role: m.role as "user" | "assistant" | "system",
+    parts: [{ type: "text" as const, text: m.content }],
+  }))
+}
 
-  if (!idea) {
-    return (
-      <div className="min-h-screen p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center py-12">
-            <h1 className="text-2xl font-bold mb-4">No project idea found</h1>
-            <Link href="/">
-              <Button>Go Home</Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+export default async function ProjectPage({ params }: Props) {
+  const { id } = await params
+  const project = await rpc.projects.get({ id })
 
-  const projectIdea = decodeURIComponent(idea);
+  if (!project) notFound()
+
+  const [storedMessages, initialTickets] = await Promise.all([
+    rpc.messages.list({ projectId: project.id }),
+    rpc.tickets.list({ projectId: project.id }),
+  ])
+  const initialMessages = messagesToUIMessages(storedMessages)
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">Generated Tickets</h1>
-          <Link href="/">
-            <Button variant="outline">New Project</Button>
-          </Link>
-        </div>
-
-        <div className="mb-8 p-4 bg-muted rounded-lg">
-          <h2 className="text-sm font-medium text-muted-foreground mb-2">
-            Project Idea
-          </h2>
-          <p className="text-base">{projectIdea}</p>
-        </div>
-
-        <ProjectChat projectIdea={projectIdea} />
+    <div className="flex h-dvh flex-col overflow-hidden p-6">
+      <div className="shrink-0">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{project.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+      <div className="mt-6 min-h-0 flex-1 flex flex-col">
+        <ProjectView
+          project={{
+            id: project.id,
+            name: project.name,
+            description: project.description ?? null,
+          }}
+          initialMessages={initialMessages}
+          initialTickets={initialTickets as Ticket[]}
+        />
       </div>
     </div>
-  );
+  )
 }
