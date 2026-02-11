@@ -45,7 +45,7 @@ export default function Home() {
       const description = trimmed
 
       const project = await rpc.projects.create({ name, description })
-      router.push(`/project/${project.slug}`)
+      router.push(`/project/${project.id}`)
       router.refresh()
     } catch (err) {
       form.setError("idea", {

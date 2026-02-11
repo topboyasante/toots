@@ -13,7 +13,7 @@ import {
   loginFormSchema,
   type LoginFormValues,
 } from "@/lib/schema/auth";
-import { Controller, useForm } from "react-hook-form";
+import { type Resolver, Controller, useForm } from "react-hook-form";
 import { authClient } from "@/lib/auth/client";
 import { GitHubIcon, GoogleIcon, Logo } from "./logos";
 import { toast } from "sonner";
@@ -23,7 +23,9 @@ import Link from "next/link";
 export default function LoginForm() {
   const router = useRouter();
   const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginFormSchema),
+    resolver: zodResolver(
+      loginFormSchema as unknown as Parameters<typeof zodResolver>[0],
+    ) as unknown as Resolver<LoginFormValues>,
     defaultValues: {
       email: "",
       password: "",

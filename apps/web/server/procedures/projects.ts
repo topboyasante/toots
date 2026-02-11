@@ -1,15 +1,7 @@
 import { prisma } from "@/lib/db"
-
-function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-}
 import {
   createProjectInput,
   deleteProjectInput,
-  getProjectBySlugInput,
   getProjectInput,
   listProjectsForSidebarInput,
   listProjectsInput,
@@ -45,7 +37,6 @@ export const createProject = protectedBase.input(createProjectInput).handler(asy
       name: input.name,
       description: input.description ?? "",
       userId: context.user.id,
-      slug: slugify(input.name) || `project-${Date.now().toString(36)}`,
     },
   })
   return project
@@ -57,7 +48,6 @@ export const updateProject = protectedBase.input(updateProjectInput).handler(asy
     data: {
       name: input.name,
       description: input.description,
-      slug: slugify(input.name) || `project-${Date.now().toString(36)}`,
     },
   })
   return project
@@ -68,13 +58,6 @@ export const deleteProject = base.input(deleteProjectInput).handler(async ({ inp
     where: { id: input.id },
   })
   return { success: true }
-})
-
-export const getProjectBySlug = base.input(getProjectBySlugInput).handler(async ({ input }) => {
-  const project = await prisma.project.findUnique({
-    where: { slug: input.slug },
-  })
-  return project
 })
 
 const MONTH_LABELS = [
@@ -115,6 +98,5 @@ export const projectsRouter = {
   create: createProject,
   update: updateProject,
   delete: deleteProject,
-  getBySlug: getProjectBySlug,
   listForSidebar: listProjectsForSidebar,
 }

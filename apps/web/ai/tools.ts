@@ -43,8 +43,84 @@ Generate tickets in a logical order for this kind of project, e.g.:
 
 Be thorough but realistic. Generate at least 5-10 tickets for a typical project.`;
 
+const ticketUpdateSchema = z.object({
+  id: z.string(),
+  title: z.string().optional(),
+  type: z.string().optional(),
+  priority: z.string().optional(),
+  description: z.string().optional(),
+  acceptanceCriteria: z.array(z.string()).optional(),
+  estimatedEffort: z.string().optional(),
+  dependencies: z.array(z.string()).optional(),
+  labels: z.array(z.string()).optional(),
+  status: z.enum(["todo", "in-progress", "done"]).optional(),
+})
+
 export function createTools(projectId?: string) {
   return {
+    listTickets: createTool({
+      description:
+        "List current tickets for the project. Use this to find ticket IDs by title when the user asks to update, remove, or change specific tickets (e.g. 'remove the onboarding ticket', 'make ticket X higher priority').",
+      inputSchema: z.object({}),
+      execute: async function () {
+        if (!projectId) return { tickets: [] }
+        const tickets = await prisma.ticket.findMany({
+          where: { projectId },
+          orderBy: { sortOrder: "asc" },
+          select: { id: true, title: true, status: true, type: true, priority: true },
+        })
+        return { tickets }
+      },
+    }),
+
+    updateTickets: createTool({
+      description:
+        "Update one or more tickets. Use listTickets first to get ticket IDs. You can update title, type, priority, description, status (todo, in-progress, done), estimatedEffort, acceptanceCriteria, dependencies, or labels.",
+      inputSchema: z.object({
+        updates: z.array(ticketUpdateSchema).describe("List of ticket updates, each with id and fields to change"),
+      }),
+      execute: async function ({ updates }) {
+        if (!projectId || !updates.length) return { updated: 0 }
+        let count = 0
+        for (const u of updates) {
+          const ticket = await prisma.ticket.findFirst({
+            where: { id: u.id, projectId },
+            include: { project: true },
+          })
+          if (!ticket) continue
+          const { id, ...data } = u
+          const updateData: Record<string, unknown> = {}
+          if (data.title !== undefined) updateData.title = data.title
+          if (data.type !== undefined) updateData.type = data.type
+          if (data.priority !== undefined) updateData.priority = data.priority
+          if (data.description !== undefined) updateData.description = data.description
+          if (data.acceptanceCriteria !== undefined) updateData.acceptanceCriteria = data.acceptanceCriteria
+          if (data.estimatedEffort !== undefined) updateData.estimatedEffort = data.estimatedEffort
+          if (data.dependencies !== undefined) updateData.dependencies = data.dependencies
+          if (data.labels !== undefined) updateData.labels = data.labels
+          if (data.status !== undefined) updateData.status = data.status
+          await prisma.ticket.update({ where: { id }, data: updateData })
+          count++
+        }
+        return { updated: count }
+      },
+    }),
+
+    removeTickets: createTool({
+      description:
+        "Remove one or more tickets by ID. Use listTickets first to get ticket IDs when the user refers to tickets by name (e.g. 'delete the onboarding ticket').",
+      inputSchema: z.object({
+        ticketIds: z.array(z.string()).describe("Ticket IDs to remove"),
+      }),
+      execute: async function ({ ticketIds }) {
+        if (!projectId || !ticketIds.length) return { removed: 0 }
+        const result = await prisma.ticket.deleteMany({
+          where: { id: { in: ticketIds }, projectId },
+        })
+        return { removed: result.count }
+      },
+    }),
+
     generateTickets: createTool({
       description:
         "Generate a set of Jira/Linear-style tickets for a work project. Call this when you have enough context (from questions or because the user asked to proceed). The project can be anything—product, marketing, event, process, HR, etc. Provide a clear project description with goals and context from the conversation.",
@@ -85,6 +161,7 @@ export function createTools(projectId?: string) {
                 dependencies: t.dependencies,
                 labels: t.labels,
                 sortOrder: i,
+                status: "todo",
               })),
             })
           }

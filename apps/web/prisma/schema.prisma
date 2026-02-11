@@ -31,7 +31,7 @@ model User {
 model Project {
   id          String    @id @default(cuid())
   name        String
-  slug        String    @unique
+  slug        String?
   description String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -69,6 +69,7 @@ model Ticket {
   dependencies       Json
   labels             Json
   sortOrder          Int      @default(0)
+  status             String   @default("todo")
   createdAt          DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

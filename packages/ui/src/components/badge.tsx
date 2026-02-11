@@ -30,16 +30,17 @@ function Badge({
   ...props
 }: React.ComponentProps<"span"> &
   VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot.Root : "span"
+  const slotProps = {
+    "data-slot": "badge",
+    "data-variant": variant,
+    className: cn(badgeVariants({ variant }), className),
+    ...props,
+  }
 
-  return (
-    <Comp
-      data-slot="badge"
-      data-variant={variant}
-      className={cn(badgeVariants({ variant }), className)}
-      {...props}
-    />
-  )
+  if (asChild) {
+    return <Slot.Root {...(slotProps as React.ComponentProps<typeof Slot.Root>)} />
+  }
+  return <span {...slotProps} />
 }
 
 export { Badge, badgeVariants }

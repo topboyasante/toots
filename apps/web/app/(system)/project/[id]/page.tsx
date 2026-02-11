@@ -9,10 +9,11 @@ import {
 import Link from "next/link"
 import { rpc } from "@/lib/orpc"
 import { notFound } from "next/navigation"
-import { ProjectChat } from "./_components/project-chat"
+import { ProjectView } from "./_components/project-view"
+import type { Ticket } from "./_components/types"
 import type { UIMessage } from "ai"
 
-type Props = { params: Promise<{ slug: string }> }
+type Props = { params: Promise<{ id: string }> }
 
 function messagesToUIMessages(messages: { id: string; role: string; content: string }[]): UIMessage[] {
   return messages.map((m) => ({
@@ -22,13 +23,16 @@ function messagesToUIMessages(messages: { id: string; role: string; content: str
   }))
 }
 
-export default async function ProjectBySlugPage({ params }: Props) {
-  const { slug } = await params
-  const project = await rpc.projects.getBySlug({ slug })
+export default async function ProjectPage({ params }: Props) {
+  const { id } = await params
+  const project = await rpc.projects.get({ id })
 
   if (!project) notFound()
 
-  const storedMessages = await rpc.messages.list({ projectId: project.id })
+  const [storedMessages, initialTickets] = await Promise.all([
+    rpc.messages.list({ projectId: project.id }),
+    rpc.tickets.list({ projectId: project.id }),
+  ])
   const initialMessages = messagesToUIMessages(storedMessages)
 
   return (
@@ -48,14 +52,15 @@ export default async function ProjectBySlugPage({ params }: Props) {
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      <div className="mt-6 min-h-0 flex-1 w-full max-w-2xl mx-auto">
-        <ProjectChat
+      <div className="mt-6 min-h-0 flex-1 flex flex-col">
+        <ProjectView
           project={{
             id: project.id,
             name: project.name,
             description: project.description ?? null,
           }}
           initialMessages={initialMessages}
+          initialTickets={initialTickets as Ticket[]}
         />
       </div>
     </div>

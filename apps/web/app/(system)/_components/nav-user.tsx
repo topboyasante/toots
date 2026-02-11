@@ -1,10 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@workspace/ui/components/avatar";
+import { Button } from "@workspace/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,6 +66,7 @@ export function NavUser() {
   const router = useRouter();
   const { isMobile } = useSidebar();
   const { data: session, isPending } = authClient.useSession();
+  const [signOutDialogOpen, setSignOutDialogOpen] = useState(false);
 
   const user = session?.user;
   const name = user?.name ?? null;
@@ -65,6 +75,7 @@ export function NavUser() {
   const initials = getInitials(name, email);
 
   const handleSignOut = () => {
+    setSignOutDialogOpen(false);
     authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
@@ -173,13 +184,32 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut}>
+            <DropdownMenuItem onClick={() => setSignOutDialogOpen(true)}>
               <LogOutIcon />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
+
+      <Dialog open={signOutDialogOpen} onOpenChange={setSignOutDialogOpen}>
+        <DialogContent showCloseButton>
+          <DialogHeader>
+            <DialogTitle>Sign out?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to sign out?
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSignOutDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSignOut}>
+              Sign out
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarMenu>
   );
 }

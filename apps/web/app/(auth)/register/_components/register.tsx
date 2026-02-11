@@ -10,7 +10,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Separator } from "@workspace/ui/components/separator";
 import { registerFormSchema, type RegisterFormValues } from "@/lib/schema/auth";
-import { Controller, useForm } from "react-hook-form";
+import { type Resolver, Controller, useForm } from "react-hook-form";
 import { authClient } from "@/lib/auth/client";
 import { GitHubIcon, GoogleIcon, Logo } from "./logos";
 import { toast } from "sonner";
@@ -20,7 +20,9 @@ import Link from "next/link";
 export default function RegisterForm() {
   const router = useRouter();
   const form = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerFormSchema),
+    resolver: zodResolver(
+      registerFormSchema as unknown as Parameters<typeof zodResolver>[0],
+    ) as unknown as Resolver<RegisterFormValues>,
     defaultValues: {
       username: "",
       email: "",

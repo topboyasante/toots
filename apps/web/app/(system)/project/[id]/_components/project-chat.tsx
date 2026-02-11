@@ -41,15 +41,20 @@ function getMessageText(message: UIMessage): string {
 export type ProjectChatProps = {
   project: { id: string; name: string; description: string | null };
   initialMessages?: UIMessage[];
+  /** Called after each AI response finishes (e.g. to refetch tickets) */
+  onFinish?: () => void;
+  /** Whether tickets already exist for this project */
+  hasTickets?: boolean;
 };
 
-export function ProjectChat({ project, initialMessages = [] }: ProjectChatProps) {
+export function ProjectChat({ project, initialMessages = [], onFinish, hasTickets }: ProjectChatProps) {
   const { messages, sendMessage, status, stop } = useChat({
     messages: initialMessages,
     transport: new DefaultChatTransport({
       api: "/api/chat",
       body: { project },
     }),
+    onFinish,
   });
 
   const hasAutoSentRef = useRef(false);
@@ -91,16 +96,18 @@ export function ProjectChat({ project, initialMessages = [] }: ProjectChatProps)
                     : "We'll ask a few questions to refine your project, then generate tickets. You can skip to ticket generation at any time."
                 }
               >
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                  <Button
-                    onClick={sendSkip}
-                    variant="outline"
-                    size="sm"
-                    disabled={isLoading}
-                  >
-                    Skip to ticket generation
-                  </Button>
-                </div>
+                {!hasTickets && (
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                    <Button
+                      onClick={sendSkip}
+                      variant="outline"
+                      size="sm"
+                      disabled={isLoading}
+                    >
+                      Skip to ticket generation
+                    </Button>
+                  </div>
+                )}
               </ConversationEmptyState>
             ) : (
               messages.map((message) => (
@@ -128,16 +135,18 @@ export function ProjectChat({ project, initialMessages = [] }: ProjectChatProps)
         <PromptInput onSubmit={handleSubmit}>
           <PromptInputTextarea name="message" placeholder="Answer the questions or ask to generate tickets…" />
           <PromptInputFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-              onClick={sendSkip}
-              disabled={isLoading}
-            >
-              Skip to ticket generation
-            </Button>
+            {!hasTickets && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground"
+                onClick={sendSkip}
+                disabled={isLoading}
+              >
+                Skip to ticket generation
+              </Button>
+            )}
             <PromptInputSubmit status={status} onStop={stop} />
           </PromptInputFooter>
         </PromptInput>
