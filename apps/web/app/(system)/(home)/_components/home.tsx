@@ -55,7 +55,7 @@ export default function Home() {
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto rounded-4xl px-3 py-5 bg-card">
+    <div className="w-full max-w-2xl mx-auto">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-semibold text-foreground tracking-tight">
           Describe your project idea

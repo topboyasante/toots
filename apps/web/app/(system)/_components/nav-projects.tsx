@@ -80,10 +80,10 @@ export function NavProjects({ groups }: { groups: SidebarProjectsGroup[] }) {
           <SidebarMenu>
             {group.projects.map((project) => (
               <SidebarMenuItem key={project.id}>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild tooltip={project.name}>
                   <Link href={`/project/${project.id}`} className="transition-colors duration-100">
                     <FolderIcon />
-                    <span>{project.name}</span>
+                    <span className="truncate">{project.name}</span>
                   </Link>
                 </SidebarMenuButton>
                 <DropdownMenu>

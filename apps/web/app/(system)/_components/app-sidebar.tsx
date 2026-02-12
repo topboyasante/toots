@@ -13,6 +13,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
   SidebarSeparator,
+  SidebarTrigger,
 } from "@workspace/ui/components/sidebar"
 import { HomeIcon, PlusCircleIcon } from "lucide-react"
 import Link from "next/link"
@@ -34,23 +35,29 @@ export function AppSidebar({
 }) {
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader className="group-data-[collapsible=icon]:hidden">
+      <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild size="lg">
-              <Link href="/" className="font-semibold">
-                <HomeIcon />
-                <span>Toots</span>
-              </Link>
-            </SidebarMenuButton>
+            <div className="flex w-full items-center justify-between">
+              <SidebarMenuButton asChild size="lg" tooltip="Toots">
+                <Link href="/" className="font-semibold">
+                  <HomeIcon />
+                  <span className="group-data-[collapsible=icon]:hidden">
+                    Toots
+                  </span>
+                </Link>
+              </SidebarMenuButton>
+              <SidebarTrigger className="group-data-[collapsible=icon]:hidden" />
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+      <SidebarSeparator />
       <SidebarContent>
-        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+        <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild>
+              <SidebarMenuButton asChild tooltip="New project">
                 <Link href="/">
                   <PlusCircleIcon />
                   <span>New project</span>
@@ -59,7 +66,7 @@ export function AppSidebar({
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
-        <SidebarSeparator className="group-data-[collapsible=icon]:hidden" />
+        <SidebarSeparator />
         <SidebarGroup className="group-data-[collapsible=icon]:hidden">
           <SidebarGroupLabel>Projects</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -67,6 +74,7 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarSeparator />
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>
