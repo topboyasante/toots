@@ -30,8 +30,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import { toast } from "sonner"
 import { rpc } from "@/lib/orpc"
 import type { Ticket } from "./types"
-import { STATUS_LABELS } from "./types"
-import { KANBAN_STATUSES } from "./types"
+import { getPriorityStyle, KANBAN_STATUSES, STATUS_LABELS } from "./types"
 
 const TYPES = ["Story", "Task", "Epic", "Milestone", "Deliverable"]
 const PRIORITIES = ["P0", "P1", "P2", "P3"]
@@ -137,7 +136,7 @@ export function TicketDetailSheet({
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent className="sm:max-w-lg flex flex-col" side="right">
           <SheetHeader>
-            <SheetTitle className="pr-8">{editing ? "Edit ticket" : "Ticket details"}</SheetTitle>
+            <SheetTitle className="pr-8 tracking-tight">{editing ? "Edit ticket" : "Ticket details"}</SheetTitle>
           </SheetHeader>
           <div className="flex-1 overflow-y-auto flex flex-col gap-4 px-4 py-4">
             {editing ? (
@@ -249,8 +248,10 @@ export function TicketDetailSheet({
                   <p className="font-medium">{ticket.title}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">{ticket.type}</Badge>
-                  <Badge variant="outline">{ticket.priority}</Badge>
+                  <Badge variant="secondary" className="font-medium">{ticket.type}</Badge>
+                  <Badge variant="secondary" className={`border-0 ${getPriorityStyle(ticket.priority)}`}>
+                    {ticket.priority}
+                  </Badge>
                   <Badge variant="ghost">{ticket.estimatedEffort}</Badge>
                   <Badge variant="outline">{statusLabel}</Badge>
                 </div>
@@ -322,7 +323,7 @@ export function TicketDetailSheet({
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent showCloseButton>
           <DialogHeader>
-            <DialogTitle>Delete ticket?</DialogTitle>
+            <DialogTitle className="tracking-tight">Delete ticket?</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
             This will permanently delete &quot;{ticket.title}&quot;. This action cannot be undone.

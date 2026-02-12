@@ -55,18 +55,18 @@ export default function Home() {
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto border rounded-4xl px-3 py-5">
+    <div className="w-full max-w-2xl mx-auto shadow-card rounded-4xl px-3 py-5">
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-semibold text-foreground tracking-tight">
+        <h1 className="text-3xl font-semibold text-foreground tracking-tight">
           Describe your project idea
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2 text-sm text-muted-foreground/80">
           We&apos;ll ask clarifying questions, then generate Jira/Linear-style
           tickets with priorities, effort, and acceptance criteria.
         </p>
       </div>
 
-      <div className="bg-background border border-border rounded-2xl overflow-hidden">
+      <div className="bg-card shadow-card rounded-2xl overflow-hidden border border-border">
         <input
           ref={fileInputRef}
           type="file"

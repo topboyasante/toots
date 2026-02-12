@@ -38,8 +38,9 @@ export function ProjectView({ project, initialMessages, initialTickets }: Projec
             variant="outline"
             size="sm"
             onClick={() => setChatOpen((o) => !o)}
+            className="transition-colors duration-150"
           >
-            <MessageSquareIcon className="size-4 mr-1.5" />
+            <MessageSquareIcon className={cn("size-4 mr-1.5 transition-opacity duration-150", chatOpen ? "opacity-100" : "opacity-80")} />
             {chatOpen ? "Close chat" : "Chat"}
           </Button>
         </div>

@@ -1,6 +1,6 @@
 # Toots
 
-**AI-powered project manager** — describe a project, get AI-generated tickets, manage them on a Kanban board, and (planned) export to Jira or Linear.
+**AI-powered project assistant** — describe a project, get AI-generated tickets, manage them on a Kanban board, and (planned) export to Jira or Linear.
 
 ## Features
 
