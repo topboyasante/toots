@@ -11,7 +11,7 @@ const link = new RPCLink({
   url:
     typeof window !== "undefined"
       ? `${window.location.origin}/rpc`
-      : `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/rpc`,
+      : `${process.env.NEXT_PUBLIC_APP_URL}/rpc`,
   headers: async () => {
     if (typeof window !== "undefined") return {}
     const { headers } = await import("next/headers")
