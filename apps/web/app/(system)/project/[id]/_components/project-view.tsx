@@ -18,7 +18,7 @@ export type ProjectViewProps = {
 
 export function ProjectView({ project, initialMessages, initialTickets }: ProjectViewProps) {
   const [tickets, setTickets] = useState<Ticket[]>(initialTickets)
-  const [chatOpen, setChatOpen] = useState(false)
+  const [chatOpen, setChatOpen] = useState(initialTickets.length === 0)
 
   const refreshTickets = useCallback(async () => {
     const list = await rpc.tickets.list({ projectId: project.id })

@@ -16,6 +16,7 @@ import {
 import { type Resolver, Controller, useForm } from "react-hook-form";
 import { authClient } from "@/lib/auth/client";
 import { Logo } from "./logos";
+import { Spinner } from "@workspace/ui/components/spinner";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -42,11 +43,7 @@ export default function LoginForm() {
       password: data.password,
       callbackURL: "/",
     }, {
-      onRequest: () => {
-        toast.loading("Signing in...");
-      },
       onSuccess: () => {
-        toast.success("Signed in successfully");
         router.push("/");
       },
       onError: (ctx) => {
@@ -149,10 +146,7 @@ export default function LoginForm() {
             >
               {isSubmitting ? (
                 <span className="inline-flex items-center justify-center gap-2">
-                  <span
-                    className="size-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent"
-                    aria-hidden
-                  />
+                  <Spinner className="size-4 shrink-0" />
                   Signing in…
                 </span>
               ) : (

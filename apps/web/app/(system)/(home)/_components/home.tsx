@@ -20,6 +20,7 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Paperclip, Plus, Send } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { useRouter } from "next/navigation"
 import { useRef } from "react"
 import { type Resolver, Controller, useForm } from "react-hook-form"
@@ -143,7 +144,11 @@ export default function Home() {
               disabled={!form.watch("idea")?.trim() || form.formState.isSubmitting}
               className="size-7 p-0 rounded-full bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Send className="size-3 fill-primary" />
+              {form.formState.isSubmitting ? (
+                <Spinner className="size-3 text-primary-foreground" />
+              ) : (
+                <Send className="size-3 fill-primary" />
+              )}
             </Button>
           </div>
         </form>

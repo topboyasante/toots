@@ -27,6 +27,7 @@ import {
   DialogFooter,
 } from "@workspace/ui/components/dialog"
 import { Badge } from "@workspace/ui/components/badge"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "sonner"
 import { rpc } from "@/lib/orpc"
 import type { Ticket } from "./types"
@@ -315,7 +316,14 @@ export function TicketDetailSheet({
                   Cancel
                 </Button>
                 <Button onClick={handleSave} disabled={saving}>
-                  {saving ? "Saving…" : "Save"}
+                  {saving ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Spinner className="size-4" />
+                      Saving…
+                    </span>
+                  ) : (
+                    "Save"
+                  )}
                 </Button>
               </>
             ) : (
@@ -345,7 +353,14 @@ export function TicketDetailSheet({
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-              {deleting ? "Deleting…" : "Delete"}
+              {deleting ? (
+                <span className="inline-flex items-center gap-2">
+                  <Spinner className="size-4" />
+                  Deleting…
+                </span>
+              ) : (
+                "Delete"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

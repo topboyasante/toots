@@ -13,6 +13,7 @@ import { registerFormSchema, type RegisterFormValues } from "@/lib/schema/auth";
 import { type Resolver, Controller, useForm } from "react-hook-form";
 import { authClient } from "@/lib/auth/client";
 import { Logo } from "./logos";
+import { Spinner } from "@workspace/ui/components/spinner";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -35,16 +36,12 @@ export default function RegisterForm() {
   const isSubmitting = form.formState.isSubmitting;
 
   async function onSubmit(data: RegisterFormValues) {
-    const { error } = await authClient.signUp.email({
+    await authClient.signUp.email({
       email: data.email,
       name: data.username,
       password: data.password,
     }, {
-      onRequest: () => {
-        toast.loading("Signing up...");
-      },
       onSuccess: () => {
-        toast.success("Signed up successfully");
         router.push("/");
       },
       onError: (ctx) => {
@@ -168,10 +165,7 @@ export default function RegisterForm() {
             >
               {isSubmitting ? (
                 <span className="inline-flex items-center justify-center gap-2">
-                  <span
-                    className="size-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent"
-                    aria-hidden
-                  />
+                  <Spinner className="size-4 shrink-0" />
                   Creating account…
                 </span>
               ) : (
