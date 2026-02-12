@@ -27,7 +27,7 @@ export function KanbanColumn({ status, tickets, onTicketClick }: KanbanColumnPro
     <div
       ref={setNodeRef}
       className={cn(
-        "flex flex-col min-w-[280px] flex-1 rounded-xl bg-muted/40 shadow-card text-card-foreground",
+        "flex flex-col min-w-[280px] flex-1 rounded-xl bg-muted/40 border border-border text-card-foreground",
         isOver && "ring-2 ring-primary/50"
       )}
     >

@@ -33,10 +33,10 @@ export const TicketCard = forwardRef<HTMLDivElement, TicketCardProps & React.HTM
         ref={forwardedRef}
         style={styleProp}
         className={cn(
-          "rounded-xl bg-card shadow-card border border-border text-card-foreground p-4 flex flex-col gap-3 select-none transition-all duration-150",
+          "rounded-xl bg-card border border-border text-card-foreground p-4 flex flex-col gap-3 select-none transition-all duration-150",
           isDragOverlay
-            ? "shadow-xl ring-2 ring-primary/30 cursor-grabbing"
-            : "cursor-grab active:cursor-grabbing hover:shadow-card-hover hover:-translate-y-px",
+            ? "ring-2 ring-primary/30 cursor-grabbing"
+            : "cursor-grab active:cursor-grabbing hover:-translate-y-px",
           className
         )}
         onClick={(e) => {
