@@ -56,8 +56,28 @@ const ticketUpdateSchema = z.object({
   status: z.enum(["todo", "in-progress", "done"]).optional(),
 })
 
-export function createTools(projectId?: string) {
+const clarifyingQuestionSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  options: z.array(z.string()).optional(),
+})
+
+export function createTools(
+  projectId?: string,
+  ticketGenContext?: { ticketsGenerated: boolean }
+) {
   return {
+    setClarifyingQuestions: createTool({
+      description:
+        "Call this when you are about to ask 2-4 clarifying questions so the UI can show them in an interview card. Pass the same questions (and optional multiple-choice options per question) you will ask in your reply. Each question needs id (e.g. 'q1', 'q2'), text (the question), and optionally options (array of choice strings, e.g. ['Option A', 'Option B']).",
+      inputSchema: z.object({
+        questions: z.array(clarifyingQuestionSchema).describe("List of clarifying questions with id, text, and optional options for multiple choice"),
+      }),
+      execute: async function ({ questions }) {
+        return { questions }
+      },
+    }),
+
     listTickets: createTool({
       description:
         "List current tickets for the project. Use this to find ticket IDs by title when the user asks to update, remove, or change specific tickets (e.g. 'remove the onboarding ticket', 'make ticket X higher priority').",
@@ -164,6 +184,7 @@ export function createTools(projectId?: string) {
                 status: "todo",
               })),
             })
+            if (ticketGenContext) ticketGenContext.ticketsGenerated = true
           }
 
           return { tickets }

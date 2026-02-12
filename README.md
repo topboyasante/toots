@@ -1,23 +1,67 @@
 # Toots
 
-**AI-powered project assistant** — describe a project, get AI-generated tickets, manage them on a Kanban board, and (planned) export to Jira or Linear.
+**AI-native product discovery and project management** — upload customer interviews, feedback, and usage data; let AI tell you *what to build* and *why*; then break it into actionable tickets for your team or coding agent.
+
+> Inspired by the idea of a **"Cursor for product management"**: an AI system focused on helping teams figure out what to build, not just how to build it.
+
+## Vision
+
+Most AI tools today help you *write code faster*. But writing code is only part of building a product people want. The hardest part is figuring out **what to build in the first place** — talking to users, synthesizing feedback, and deciding what problems are worth solving.
+
+Toots aims to close that gap. Instead of starting with an idea you already have, Toots helps you:
+
+1. **Ingest real data** — customer interviews, support tickets, product analytics, user feedback
+2. **Surface insights** — AI synthesizes patterns across your data ("12/40 interviewees struggle with onboarding")
+3. **Recommend what to build** — evidence-ranked feature proposals with citations back to source data
+4. **Generate actionable tickets** — Jira/Linear-style issues grounded in evidence, ready for your team or coding agent
 
 ## Features
 
 ### Implemented
 
-- **Auth** — Email/password sign up and login (better-auth). Route protection: signed-out users are redirected to login; signed-in users visiting `/login` or `/register` are redirected to the app.
-- **AI-generated tickets** — Describe a project on the home page; the app asks clarifying questions in a project chat, then generates Jira/Linear-style tickets (Story, Task, Epic, etc.) with priority, effort, acceptance criteria, dependencies, and labels. Powered by Gemini.
-- **Kanban board** — Drag-and-drop board (To Do → In Progress → Done) for project tickets. Status updates persist.
-- **Ticket detail** — Slide-out sheet to view and edit ticket title, description, type, priority, effort, acceptance criteria, dependencies, labels, and status; delete with confirmation.
-- **Projects & persistence** — Projects and tickets stored in PostgreSQL. Sidebar lists your projects; create new projects from home. Project URLs use id (`/project/[id]`).
-- **Project chat** — Collapsible chat panel per project to refine scope and request more ticket changes (add, remove, update) via AI.
+- **Auth** — Email/password sign-up and login (better-auth). Route protection for signed-in/signed-out users.
+- **AI-generated tickets** — Describe a project; the AI asks clarifying questions, then generates tickets (Story, Task, Epic, etc.) with priority, effort, acceptance criteria, dependencies, and labels. Powered by Gemini.
+- **Kanban board** — Drag-and-drop board (To Do → In Progress → Done) with persistent status updates.
+- **Ticket detail** — Slide-out sheet to view and edit all ticket fields; delete with confirmation.
+- **Projects & persistence** — Projects and tickets stored in PostgreSQL. Sidebar lists your projects grouped by month.
+- **Project chat** — Collapsible chat panel per project to refine scope and request ticket changes via AI.
 
-### Planned
+### Roadmap (the pivot)
 
-- **Export** — Send tickets to **Jira** or **Linear** (OAuth; one-way export).
-- **Assignments & points** — Assign tickets and award points for completed work.
-- **Agents** — Optional AI agents to work on tickets.
+The following features represent the pivot toward full product discovery. See [GitHub Issues](https://github.com/topboyasante/toots/issues) for detailed tasks.
+
+- **Data source ingestion** — Upload or paste customer interviews, support tickets, survey results, and feedback. Parse and chunk text for AI analysis.
+- **Knowledge base & embeddings** — Embed ingested data using pgvector for semantic retrieval. Enable the AI to search across all your customer data.
+- **Insight extraction** — AI analyzes uploaded data to extract themes, pain points, feature requests, and opportunities, each with evidence strength and citations.
+- **Insights dashboard** — A dedicated view showing synthesized insights ranked by evidence, with links back to source data.
+- **"What should we build?" mode** — A new entry point alongside the existing "describe your project" flow. The AI recommends features based on ingested evidence instead of a user's idea.
+- **Insight → Project bridge** — One click to turn an insight into a project with evidence-grounded tickets.
+- **Evidence-aware chat** — When a project originates from an insight, the AI cites source data in its recommendations and ticket descriptions.
+- **Data source integrations** — Connect to external tools (Intercom, PostHog, Zendesk, Slack, etc.) to automatically ingest customer signals.
+- **Export** — Send tickets to Jira or Linear (OAuth, one-way export).
+- **Coding agent handoff** — Format ticket output for coding agents (Cursor, Claude Code) with proposed UI changes, data model diffs, and workflow descriptions.
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────┐
+│  Data Sources (the "input" layer)               │
+│  ┌───────────┐ ┌──────────┐ ┌───────────────┐  │
+│  │ Interviews│ │ Analytics│ │ Feedback /     │  │
+│  │ & Notes   │ │ Events   │ │ Support        │  │
+│  └─────┬─────┘ └────┬─────┘ └──────┬────────┘  │
+│        └─────────────┼──────────────┘           │
+│                      ▼                          │
+│  Knowledge Base (embeddings + retrieval)        │
+│                      │                          │
+│                      ▼                          │
+│  Insight Engine ("what should we build?")       │
+│                      │                          │
+│                      ▼                          │
+│  Project + Ticket Generation                    │
+│  (chat, clarifying questions, Kanban board)     │
+└─────────────────────────────────────────────────┘
+```
 
 ## Tech stack
 
@@ -27,6 +71,7 @@
 - **Auth** — better-auth (email/password)
 - **AI** — Vercel AI SDK, Google Gemini
 - **UI** — shadcn/ui (shared in `packages/ui`), Tailwind CSS, dnd-kit for Kanban
+- **Embeddings** — pgvector (planned)
 
 ## Development
 
@@ -46,7 +91,7 @@
 
 2. **Database**
 
-   Start PostgreSQL (e.g. with the project’s Compose file):
+   Start PostgreSQL (e.g. with the project's Compose file):
 
    ```bash
    docker compose up -d
@@ -103,3 +148,11 @@ import { Button } from "@workspace/ui/components/button"
 ```
 
 Tailwind and `globals.css` are set up to use the shared `ui` package.
+
+## Contributing
+
+This project is open source. Check the [GitHub Issues](https://github.com/topboyasante/toots/issues) for tasks to pick up — they're designed to be self-contained and actionable. Contributions welcome!
+
+## License
+
+MIT

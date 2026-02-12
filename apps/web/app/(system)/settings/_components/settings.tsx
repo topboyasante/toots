@@ -95,7 +95,7 @@ export function SettingsContent() {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-4">
-              <p className="text-sm font-medium text-foreground">Full name</p>
+              <p className="text-sm font-medium text-foreground">Username</p>
               <span className="text-sm text-muted-foreground rounded-md bg-muted/50 px-3 py-2 border border-border w-full sm:max-w-[240px] sm:w-auto">
                 {name?.trim() || "—"}
               </span>
