@@ -134,20 +134,22 @@ export function ProjectChat({ project, initialMessages = [], onFinish, hasTicket
       <div className="shrink-0 bg-background">
         <PromptInput onSubmit={handleSubmit}>
           <PromptInputTextarea name="message" placeholder="Answer the questions or ask to generate tickets…" />
-          <PromptInputFooter>
-            {!hasTickets && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-foreground"
-                onClick={sendSkip}
-                disabled={isLoading}
-              >
-                Skip to ticket generation
-              </Button>
-            )}
-            <PromptInputSubmit status={status} onStop={stop} />
+          <PromptInputFooter className="w-full">
+            <div className="flex-1 min-w-0 flex items-center">
+              {!hasTickets && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={sendSkip}
+                  disabled={isLoading}
+                >
+                  Skip to ticket generation
+                </Button>
+              )}
+            </div>
+            <PromptInputSubmit status={status} onStop={stop} className="shrink-0" />
           </PromptInputFooter>
         </PromptInput>
       </div>

@@ -30,8 +30,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import { toast } from "sonner"
 import { rpc } from "@/lib/orpc"
 import type { Ticket } from "./types"
-import { STATUS_LABELS } from "./types"
-import { KANBAN_STATUSES } from "./types"
+import { getPriorityStyle, KANBAN_STATUSES, STATUS_LABELS } from "./types"
 
 const TYPES = ["Story", "Task", "Epic", "Milestone", "Deliverable"]
 const PRIORITIES = ["P0", "P1", "P2", "P3"]
@@ -135,11 +134,13 @@ export function TicketDetailSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="sm:max-w-lg flex flex-col" side="right">
-          <SheetHeader>
-            <SheetTitle className="pr-8">{editing ? "Edit ticket" : "Ticket details"}</SheetTitle>
+        <SheetContent className="sm:max-w-2xl flex flex-col" side="right">
+          <SheetHeader className="border-b border-border pb-4">
+            <SheetTitle className="pr-8 tracking-tight text-left">
+              {editing ? "Edit ticket" : "Ticket details"}
+            </SheetTitle>
           </SheetHeader>
-          <div className="flex-1 overflow-y-auto flex flex-col gap-4 px-4 py-4">
+          <div className="flex-1 overflow-y-auto flex flex-col gap-6 p-4">
             {editing ? (
               <>
                 <div className="grid gap-2">
@@ -246,56 +247,68 @@ export function TicketDetailSheet({
               <>
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Title</p>
-                  <p className="font-medium">{ticket.title}</p>
+                  <p className="font-medium text-foreground tracking-tight">{ticket.title}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">{ticket.type}</Badge>
-                  <Badge variant="outline">{ticket.priority}</Badge>
+                  <Badge variant="secondary" className="font-medium">{ticket.type}</Badge>
+                  <Badge variant="secondary" className={`border-0 ${getPriorityStyle(ticket.priority)}`}>
+                    {ticket.priority}
+                  </Badge>
                   <Badge variant="ghost">{ticket.estimatedEffort}</Badge>
                   <Badge variant="outline">{statusLabel}</Badge>
                 </div>
-                <div>
+                <div className="border-t border-border pt-4 mt-1">
                   <p className="text-sm text-muted-foreground mb-1">Description</p>
-                  <p className="text-sm whitespace-pre-wrap">{ticket.description}</p>
+                  <p className="text-sm whitespace-pre-wrap text-foreground/90">
+                    {ticket.description || (
+                      <span className="italic text-muted-foreground">No description</span>
+                    )}
+                  </p>
                 </div>
-                {acceptanceCriteria.length > 0 && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Acceptance criteria</p>
-                    <ul className="list-disc list-inside text-sm space-y-1">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Acceptance criteria</p>
+                  {acceptanceCriteria.length > 0 ? (
+                    <ul className="list-disc list-inside text-sm space-y-1.5 text-foreground/90">
                       {acceptanceCriteria.map((c, i) => (
                         <li key={i}>{c}</li>
                       ))}
                     </ul>
-                  </div>
-                )}
-                {dependencies.length > 0 && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Dependencies</p>
-                    <div className="flex flex-wrap gap-1">
+                  ) : (
+                    <p className="text-sm italic text-muted-foreground">None</p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Dependencies</p>
+                  {dependencies.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
                       {dependencies.map((d) => (
-                        <Badge key={d} variant="outline" className="text-xs">
+                        <Badge key={d} variant="outline" className="text-xs font-normal">
                           {d}
                         </Badge>
                       ))}
                     </div>
-                  </div>
-                )}
-                {labels.length > 0 && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Labels</p>
-                    <div className="flex flex-wrap gap-1">
+                  ) : (
+                    <p className="text-sm italic text-muted-foreground">None</p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Labels</p>
+                  {labels.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
                       {labels.map((l) => (
-                        <Badge key={l} variant="secondary" className="text-xs">
+                        <Badge key={l} variant="secondary" className="text-xs font-normal">
                           {l}
                         </Badge>
                       ))}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <p className="text-sm italic text-muted-foreground">None</p>
+                  )}
+                </div>
               </>
             )}
           </div>
-          <SheetFooter className="flex-row gap-2 flex-wrap sm:flex-row">
+          <SheetFooter className="flex-row gap-2 flex-wrap sm:flex-row border-t border-border pt-4 mt-auto">
             {editing ? (
               <>
                 <Button variant="outline" onClick={() => setEditing(false)} disabled={saving}>
@@ -322,7 +335,7 @@ export function TicketDetailSheet({
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent showCloseButton>
           <DialogHeader>
-            <DialogTitle>Delete ticket?</DialogTitle>
+            <DialogTitle className="tracking-tight">Delete ticket?</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
             This will permanently delete &quot;{ticket.title}&quot;. This action cannot be undone.

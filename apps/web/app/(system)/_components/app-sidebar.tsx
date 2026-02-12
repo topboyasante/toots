@@ -4,14 +4,18 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarHeader,
-  SidebarRail,
   SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
+  SidebarSeparator,
+  SidebarTrigger,
 } from "@workspace/ui/components/sidebar"
-import { PlusCircleIcon } from "lucide-react"
+import { HomeIcon, PlusCircleIcon } from "lucide-react"
 import Link from "next/link"
 import * as React from "react"
 import { NavProjects } from "./nav-projects"
@@ -31,12 +35,29 @@ export function AppSidebar({
 }) {
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader />
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <div className="flex w-full items-center justify-between">
+              <SidebarMenuButton asChild size="lg" tooltip="Toots">
+                <Link href="/" className="font-semibold">
+                  <HomeIcon />
+                  <span className="group-data-[collapsible=icon]:hidden">
+                    Toots
+                  </span>
+                </Link>
+              </SidebarMenuButton>
+              <SidebarTrigger className="group-data-[collapsible=icon]:hidden" />
+            </div>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+      <SidebarSeparator />
       <SidebarContent>
-        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+        <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild>
+              <SidebarMenuButton asChild tooltip="New project">
                 <Link href="/">
                   <PlusCircleIcon />
                   <span>New project</span>
@@ -45,8 +66,15 @@ export function AppSidebar({
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
-        <NavProjects groups={sidebarProjects.groups} />
+        <SidebarSeparator />
+        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+          <SidebarGroupLabel>Projects</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <NavProjects groups={sidebarProjects.groups} />
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
+      <SidebarSeparator />
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>

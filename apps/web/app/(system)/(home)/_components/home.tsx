@@ -55,18 +55,19 @@ export default function Home() {
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto border rounded-4xl px-3 py-5">
+    <div className="w-full max-w-2xl mx-auto">
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-semibold text-foreground tracking-tight">
+        <h1 className="text-3xl font-semibold text-foreground tracking-tight">
           Describe your project idea
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          We&apos;ll ask clarifying questions, then generate Jira/Linear-style
-          tickets with priorities, effort, and acceptance criteria.
+        <p className="mt-2 text-sm text-muted-foreground/80">
+          Turn ideas into ready-to-use tickets—we&apos;ll ask a few questions,
+          then generate Jira/Linear-style issues with priorities and acceptance
+          criteria.
         </p>
       </div>
 
-      <div className="bg-background border border-border rounded-2xl overflow-hidden">
+      <div className="bg-card rounded-2xl overflow-hidden border border-border">
         <input
           ref={fileInputRef}
           type="file"
@@ -146,6 +147,23 @@ export default function Home() {
             </Button>
           </div>
         </form>
+      </div>
+
+      <div className="mt-4 flex flex-wrap justify-center gap-2">
+        {[
+          "A simple todo app with due dates and categories",
+          "API integration with auth, retries, and webhooks",
+          "Onboarding flow: signup, email verify, first steps",
+        ].map((label) => (
+          <button
+            key={label}
+            type="button"
+            onClick={() => form.setValue("idea", label, { shouldValidate: true })}
+            className="rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            {label}
+          </button>
+        ))}
       </div>
     </div>
   );

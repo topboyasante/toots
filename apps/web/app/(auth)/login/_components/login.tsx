@@ -63,10 +63,10 @@ export default function LoginForm() {
               aria-hidden={true}
             />
             <p className="text-pretty text-lg font-medium text-foreground dark:text-foreground">
-              Acme
+              Toots
             </p>
           </div>
-          <h3 className="text-balance mt-6 text-lg font-semibold text-foreground dark:text-foreground">
+          <h3 className="text-balance mt-6 text-lg font-semibold tracking-tight text-foreground dark:text-foreground">
             Sign in to your account
           </h3>
           <p className="text-pretty mt-2 text-sm text-muted-foreground dark:text-muted-foreground">
