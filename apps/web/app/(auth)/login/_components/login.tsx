@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Field,
@@ -8,19 +9,20 @@ import {
 } from "@workspace/ui/components/field";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
-import { Separator } from "@workspace/ui/components/separator";
 import {
   loginFormSchema,
   type LoginFormValues,
 } from "@/lib/schema/auth";
 import { type Resolver, Controller, useForm } from "react-hook-form";
 import { authClient } from "@/lib/auth/client";
-import { GitHubIcon, GoogleIcon, Logo } from "./logos";
+import { Logo } from "./logos";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function LoginForm() {
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(
@@ -78,40 +80,6 @@ export default function LoginForm() {
               Sign up
             </Link>
           </p>
-          <div className="mt-8 flex flex-col items-center space-y-2 sm:flex-row sm:space-x-4 sm:space-y-0">
-            <Button
-              variant="outline"
-              className="flex-1 items-center justify-center space-x-2 py-2"
-              asChild
-            >
-              <a href="#">
-                <GitHubIcon className="size-5" aria-hidden={true} />
-                <span className="text-sm font-medium">Login with GitHub</span>
-              </a>
-            </Button>
-            <Button
-              variant="outline"
-              className="mt-2 flex-1 items-center justify-center space-x-2 py-2 sm:mt-0"
-              asChild
-            >
-              <a href="#">
-                <GoogleIcon className="size-4" aria-hidden={true} />
-                <span className="text-sm font-medium">Login with Google</span>
-              </a>
-            </Button>
-          </div>
-
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <Separator className="w-full" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                or
-              </span>
-            </div>
-          </div>
-
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="mt-6 space-y-4"
@@ -144,15 +112,29 @@ export default function LoginForm() {
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                  <Input
-                    {...field}
-                    id={field.name}
-                    type="password"
-                    aria-invalid={fieldState.invalid}
-                    autoComplete="current-password"
-                    placeholder="********"
-                    className="mt-2"
-                  />
+                  <div className="relative mt-2">
+                    <Input
+                      {...field}
+                      id={field.name}
+                      type={showPassword ? "text" : "password"}
+                      aria-invalid={fieldState.invalid}
+                      autoComplete="current-password"
+                      placeholder="********"
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? (
+                        <EyeOffIcon className="size-4" />
+                      ) : (
+                        <EyeIcon className="size-4" />
+                      )}
+                    </button>
+                  </div>
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}
