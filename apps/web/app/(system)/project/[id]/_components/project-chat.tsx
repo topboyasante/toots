@@ -76,7 +76,7 @@ function messageHasTicketsGeneratedPart(message: UIMessage): boolean {
 function extractClarifyingQuestions(messages: UIMessage[]): ClarifyingQuestion[] | null {
   for (let i = messages.length - 1; i >= 0; i--) {
     const msg = messages[i];
-    if (msg.role !== "assistant" || !msg.parts?.length) continue;
+    if (!msg || msg.role !== "assistant" || !msg.parts?.length) continue;
     for (const part of msg.parts) {
       const p = part as {
         type?: string;
@@ -268,10 +268,13 @@ export function ProjectChat({ project, initialMessages = [], onFinish, hasTicket
                   <MessageContent>
                     {message.role === "assistant" ? (
                       <MessageResponse>
-                        {getMessageText(message)}
-                        {messageHasTicketsGeneratedPart(message) && (
-                          <>{getMessageText(message) ? " " : ""}{TICKETS_GENERATED_CONFIRMATION}</>
-                        )}
+                        {(() => {
+                          const text = getMessageText(message);
+                          const suffix = messageHasTicketsGeneratedPart(message)
+                            ? (text ? " " : "") + TICKETS_GENERATED_CONFIRMATION
+                            : "";
+                          return text + suffix;
+                        })()}
                       </MessageResponse>
                     ) : (
                       <span className="whitespace-pre-wrap">

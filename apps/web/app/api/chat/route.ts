@@ -1,5 +1,6 @@
 import {
   streamText,
+  stepCountIs,
   convertToModelMessages,
   createUIMessageStream,
   createUIMessageStreamResponse,
@@ -114,7 +115,7 @@ export async function POST(req: Request) {
           system: systemPrompt,
           messages: modelMessages,
           tools,
-          maxSteps: 2,
+          stopWhen: stepCountIs(2),
           async onFinish({ text }) {
             if (project && text) {
               await prisma.message.create({
